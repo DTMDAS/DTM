@@ -40,10 +40,10 @@
         /* Logo / Header Style */
         .logo-box {
             text-align: center;
-            margin: 20px 0;
+            margin: 30px 0 20px 0;
         }
         .logo-box h1 {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 800;
             color: #1a73e8;
             letter-spacing: 2px;
@@ -250,6 +250,10 @@
             padding: 10px 0;
             border-top: 1px solid rgba(255,255,255,0.1);
             z-index: 1000;
+            display: none; /* Hide on login/register pages */
+        }
+        .bottom-nav.show {
+            display: flex;
         }
         .nav-item {
             text-align: center;
@@ -323,7 +327,7 @@
                     <input type="password" placeholder="Create password">
                 </div>
             </div>
-            <button class="btn-primary" onclick="showPage('loginPage')">Register Now</button>
+            <button class="btn-primary" onclick="showPage('homePage')">Register Now</button>
             <div class="switch-text">
                 Already have an account? <span onclick="showPage('loginPage')">Login Now</span>
             </div>
@@ -398,4 +402,75 @@
 
         <div class="task-card">
             <div class="task-video-box">
-                <img src="
+                <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=500&auto=format&fit=crop&q=60" alt="Video">
+                <div class="play-btn"><i class="fa-solid fa-play"></i></div>
+            </div>
+            <div class="task-details">
+                <h4>Outer Banks...</h4>
+                <p>Outer Banks Season 5 Final Trailer Netflix</p>
+                <div class="task-reward">
+                    <span class="reward-badge"><i class="fa-solid fa-coins"></i> ₹10</span>
+                    <span style="font-size: 11px; color: #8a9ba8;"><i class="fa-solid fa-video"></i> Video</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="profilePage" class="page">
+        <h2>My Profile</h2>
+        <p style="color: #8a9ba8; font-size: 14px; margin-top: 10px;">Account details & settings will appear here.</p>
+    </div>
+
+    <div id="bottomNav" class="bottom-nav">
+        <div class="nav-item active" onclick="showPage('homePage', this)">
+            <i class="fa-solid fa-house"></i>
+            Home
+        </div>
+        <div class="nav-item" onclick="showPage('fundPage', this)">
+            <i class="fa-solid fa-wallet"></i>
+            Fund
+        </div>
+        <div class="nav-item" onclick="showPage('taskPage', this)">
+            <i class="fa-solid fa-list-check"></i>
+            Task
+        </div>
+        <div class="nav-item" onclick="showPage('profitPage', this)">
+            <i class="fa-solid fa-chart-line"></i>
+            Profit
+        </div>
+        <div class="nav-item" onclick="showPage('profilePage', this)">
+            <i class="fa-solid fa-user"></i>
+            Profile
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function showPage(pageId, element) {
+        // Hide all pages
+        const pages = document.querySelectorAll('.page');
+        pages.forEach(p => p.classList.remove('active'));
+
+        // Show target page
+        document.getElementById(pageId).classList.add('active');
+
+        // Show or hide bottom navigation based on whether user is logged in
+        const bottomNav = document.getElementById('bottomNav');
+        if (pageId === 'loginPage' || pageId === 'registerPage') {
+            bottomNav.classList.remove('show');
+        } else {
+            bottomNav.classList.add('show');
+        }
+
+        // Handle navigation active state if clicked from bottom bar
+        if(element) {
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(n => n.classList.remove('active'));
+            element.classList.add('active');
+        }
+    }
+</script>
+
+</body>
+</html>
