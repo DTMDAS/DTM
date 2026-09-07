@@ -203,6 +203,7 @@
             overflow: hidden;
             margin-bottom: 15px;
             border: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
         }
         .task-video-box {
             position: relative;
@@ -252,6 +253,43 @@
             color: #2ecc71;
             font-weight: bold;
         }
+
+        /* Video Modal Overlay */
+        #videoModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .modal-content {
+            width: 100%;
+            max-width: 400px;
+            background: #131b2e;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            padding-bottom: 15px;
+        }
+        .modal-content video {
+            width: 100%;
+            height: 220px;
+            background: #000;
+        }
+        .modal-content p {
+            margin: 15px 0;
+            font-size: 14px;
+            color: #00c6ff;
+        }
+
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -288,7 +326,6 @@
 
 <div class="app-container">
 
-    <!-- 1. LOGIN PAGE -->
     <div id="loginPage" class="page active">
         <div class="logo-box">
             <h1>DB<span>M</span></h1>
@@ -316,7 +353,6 @@
         </div>
     </div>
 
-    <!-- 2. REGISTER PAGE -->
     <div id="registerPage" class="page">
         <div class="logo-box">
             <h1>DB<span>M</span></h1>
@@ -368,7 +404,6 @@
         </div>
     </div>
 
-    <!-- 3. HOME PAGE (Dashboard) -->
     <div id="homePage" class="page">
         <div class="logo-box" style="text-align: left; margin: 10px 0;">
             <h1 style="font-size: 24px;">DB<span>M</span></h1>
@@ -380,15 +415,15 @@
         </div>
         <div class="stats-grid">
             <div class="stat-box">
-                <h4>5</h4>
+                <h4 id="statAvailable">5</h4>
                 <p>AVAILABLE</p>
             </div>
             <div class="stat-box">
-                <h4>0</h4>
+                <h4 id="statCompleted">0</h4>
                 <p>COMPLETED</p>
             </div>
             <div class="stat-box">
-                <h4>₹0.00</h4>
+                <h4 id="statEarnings">₹0.00</h4>
                 <p>TODAY'S EARNINGS</p>
             </div>
             <div class="stat-box">
@@ -404,7 +439,6 @@
         </div>
     </div>
 
-    <!-- 4. TASK PAGE -->
     <div id="taskPage" class="page">
         <div style="margin-bottom: 15px;">
             <h2 style="font-size: 18px;">Today's Tasks</h2>
@@ -412,16 +446,16 @@
         </div>
         <div class="stats-grid" style="margin-bottom: 15px;">
             <div class="stat-box">
-                <h4>0</h4>
+                <h4 id="taskCompletedCount">0</h4>
                 <p style="font-size: 10px;">COMPLETED TODAY</p>
             </div>
             <div class="stat-box">
-                <h4>5</h4>
+                <h4 id="taskRemainingCount">5</h4>
                 <p style="font-size: 10px;">REMAINING</p>
             </div>
         </div>
         
-        <div class="task-card">
+        <div class="task-card" onclick="startTask('Resident Evil 2 Task')">
             <div class="task-video-box">
                 <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=60" alt="Video">
                 <div class="play-btn"><i class="fa-solid fa-play"></i></div>
@@ -436,7 +470,7 @@
             </div>
         </div>
 
-        <div class="task-card">
+        <div class="task-card" onclick="startTask('Outer Banks Task')">
             <div class="task-video-box">
                 <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=500&auto=format&fit=crop&q=60" alt="Video">
                 <div class="play-btn"><i class="fa-solid fa-play"></i></div>
@@ -452,14 +486,23 @@
         </div>
     </div>
 
-    <!-- 5. PROFILE PAGE -->
     <div id="profilePage" class="page">
         <h2>My Profile</h2>
         <p style="color: #8a9ba8; font-size: 14px; margin-top: 10px;" id="profilePhoneText"></p>
         <button class="btn-primary" style="background: #ff4d4d; color: #fff; margin-top: 20px;" onclick="handleLogout()">Logout</button>
     </div>
 
-    <!-- BOTTOM NAVIGATION -->
+    <div id="videoModal">
+        <div class="modal-content">
+            <video id="taskVideo" controls autoplay>
+                <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+                Your browser does not support HTML video.
+            </video>
+            <p id="timerText">Watching video... Please wait.</p>
+            <button id="claimBtn" class="btn-primary" style="width: 90%; margin: 0 auto; display: none;" onclick="claimReward()">Claim ₹10 Reward</button>
+        </div>
+    </div>
+
     <div id="bottomNav" class="bottom-nav">
         <div class="nav-item active" onclick="switchPage('homePage', this)">
             <i class="fa-solid fa-house"></i>
@@ -478,7 +521,9 @@
 </div>
 
 <script>
-    // Auto-generate 4-digit OTP when page loads
+    let currentUser = null;
+    let users = JSON.parse(localStorage.getItem('dbm_users')) || [];
+
     window.onload = function() {
         generateOtp();
     }
@@ -507,7 +552,6 @@
         }
     }
 
-    // Handle Register Logic
     function handleRegister() {
         const name = document.getElementById('regName').value.trim();
         const phone = document.getElementById('regPhone').value.trim();
@@ -520,9 +564,7 @@
             return;
         }
 
-        let users = JSON.parse(localStorage.getItem('dbm_users')) || [];
-        
-        // Check if user already exists
+        users = JSON.parse(localStorage.getItem('dbm_users')) || [];
         let existingUser = users.find(u => u.phone === phone);
         if(existingUser) {
             errorBox.style.display = 'block';
@@ -530,12 +572,12 @@
             return;
         }
 
-        // Save new user with 0.00 balance
         users.push({
             name: name,
             phone: phone,
             password: password,
-            balance: 0.00
+            balance: 0.00,
+            completedTasks: 0
         });
 
         localStorage.setItem('dbm_users', JSON.stringify(users));
@@ -543,7 +585,6 @@
         switchPage('loginPage');
     }
 
-    // Handle Login Logic
     function handleLogin() {
         const phone = document.getElementById('loginPhone').value.trim();
         const password = document.getElementById('loginPassword').value.trim();
@@ -555,14 +596,13 @@
             return;
         }
 
-        let users = JSON.parse(localStorage.getItem('dbm_users')) || [];
+        users = JSON.parse(localStorage.getItem('dbm_users')) || [];
         let user = users.find(u => u.phone === phone && u.password === password);
 
         if(user) {
             errorBox.style.display = 'none';
-            // Set current active user & balance
-            document.getElementById('userBalance').innerText = `₹ ${user.balance.toFixed(2)}`;
-            document.getElementById('profilePhoneText').innerText = `Phone: ${user.phone}`;
+            currentUser = user;
+            updateUI();
             switchPage('homePage');
         } else {
             errorBox.style.display = 'block';
@@ -570,8 +610,72 @@
         }
     }
 
+    function updateUI() {
+        if(!currentUser) return;
+        document.getElementById('userBalance').innerText = `₹ ${currentUser.balance.toFixed(2)}`;
+        document.getElementById('statEarnings').innerText = `₹${currentUser.balance.toFixed(2)}`;
+        document.getElementById('profilePhoneText').innerText = `Phone: ${currentUser.phone} | Name: ${currentUser.name}`;
+        
+        let completed = currentUser.completedTasks || 0;
+        let available = 5 - completed;
+        document.getElementById('statCompleted').innerText = completed;
+        document.getElementById('statAvailable').innerText = available;
+        document.getElementById('taskCompletedCount').innerText = completed;
+        document.getElementById('taskRemainingCount').innerText = available;
+    }
+
     function handleLogout() {
+        currentUser = null;
         switchPage('loginPage');
+    }
+
+    // Task & Video Player Logic
+    let videoTimer;
+    function startTask(taskName) {
+        const modal = document.getElementById('videoModal');
+        const video = document.getElementById('taskVideo');
+        const timerText = document.getElementById('timerText');
+        const claimBtn = document.getElementById('claimBtn');
+
+        modal.style.display = 'flex';
+        claimBtn.style.display = 'none';
+        timerText.innerText = 'Video playing... Please watch completely.';
+        video.currentTime = 0;
+        video.play();
+
+        // Simulate a 5-second video watch time
+        let timeLeft = 5;
+        clearInterval(videoTimer);
+        videoTimer = setInterval(() => {
+            timeLeft--;
+            if(timeLeft > 0) {
+                timerText.innerText = `Task running... ${timeLeft} seconds remaining`;
+            } else {
+                clearInterval(videoTimer);
+                timerText.innerText = 'Task completed! Click below to claim reward.';
+                claimBtn.style.display = 'block';
+                video.pause();
+            }
+        }, 1000);
+    }
+
+    function claimReward() {
+        if(currentUser) {
+            currentUser.balance += 10;
+            currentUser.completedTasks = (currentUser.completedTasks || 0) + 1;
+
+            // Update in localStorage array
+            let index = users.findIndex(u => u.phone === currentUser.phone);
+            if(index !== -1) {
+                users[index] = currentUser;
+                localStorage.setItem('dbm_users', JSON.stringify(users));
+            }
+
+            updateUI();
+            alert('Congratulations! ₹10 added to your account.');
+        }
+
+        document.getElementById('videoModal').style.display = 'none';
     }
 </script>
 
